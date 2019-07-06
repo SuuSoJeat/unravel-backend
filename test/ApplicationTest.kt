@@ -1,20 +1,9 @@
 package dev.suusojeat
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
 import io.ktor.http.*
-import io.ktor.locations.*
-import io.ktor.sessions.*
-import io.ktor.features.*
-import org.slf4j.event.*
-import io.ktor.http.content.*
-import io.ktor.util.date.*
-import io.ktor.auth.*
-import io.ktor.gson.*
 import kotlin.test.*
 import io.ktor.server.testing.*
+import module
 
 class ApplicationTest {
     @Test

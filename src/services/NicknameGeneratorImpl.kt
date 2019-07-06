@@ -1,3 +1,5 @@
+package services
+
 class NicknameGeneratorImpl : NicknameGenerator {
 
     private val dummyNicknames = listOf("Iron Man", "Spider Man", "Zhang Xuan", "Zhou Weiqing")
