@@ -1,34 +1,55 @@
 package dev.suusojeat
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.locations.*
-import io.ktor.sessions.*
+import applicationModule
+import models.UserSession
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.auth.Authentication
 import io.ktor.features.*
-import org.slf4j.event.*
-import io.ktor.http.content.*
-import io.ktor.util.date.*
-import io.ktor.auth.*
-import io.ktor.gson.*
+import io.ktor.gson.gson
+import io.ktor.http.*
+import io.ktor.http.content.CachingOptions
+import io.ktor.locations.Location
+import io.ktor.locations.Locations
+import io.ktor.locations.get
+import io.ktor.request.path
+import io.ktor.response.respond
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
 import io.ktor.server.engine.commandLineEnvironment
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.sessions.*
+import io.ktor.util.date.GMTDate
+import org.koin.core.context.startKoin
+import org.koin.ktor.ext.inject
+import org.slf4j.event.Level
+import kotlin.collections.listOf
+import kotlin.collections.mapOf
+import kotlin.collections.set
+import NicknameGenerator
 
 fun main(args: Array<String>) {
+    startKoin {
+        printLogger()
+        modules(listOf(applicationModule))
+    }
     embeddedServer(Netty, commandLineEnvironment(args)).start(wait = true)
 }
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+
+    val nicknameGenerator: NicknameGenerator by inject()
+
     install(Locations) {
     }
 
     install(Sessions) {
-        cookie<MySession>("MY_SESSION") {
+        cookie<UserSession>("USER_SESSION") {
             cookie.extensions["SameSite"] = "lax"
         }
     }
@@ -95,12 +116,14 @@ fun Application.module(testing: Boolean = false) {
 
     install(ContentNegotiation) {
         gson {
+            setPrettyPrinting()
         }
     }
 
     routing {
         get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+            val userSession = call.sessions.getOrSet { UserSession(nickname = nicknameGenerator.generateOne()) }
+            call.respondText("HELLO WORLD! ${userSession.nickname}", contentType = ContentType.Text.Plain)
         }
 
         get<MyLocation> {
@@ -114,12 +137,6 @@ fun Application.module(testing: Boolean = false) {
             call.respondText("Inside $it")
         }
 
-        get("/session/increment") {
-            val session = call.sessions.get<MySession>() ?: MySession()
-            call.sessions.set(session.copy(count = session.count + 1))
-            call.respondText("Counter is ${session.count}. Refresh to increment.")
-        }
-
         install(StatusPages) {
             exception<AuthenticationException> { cause ->
                 call.respond(HttpStatusCode.Unauthorized)
@@ -127,7 +144,6 @@ fun Application.module(testing: Boolean = false) {
             exception<AuthorizationException> { cause ->
                 call.respond(HttpStatusCode.Forbidden)
             }
-
         }
 
         get("/json/gson") {
@@ -147,8 +163,6 @@ data class Type(val name: String) {
     @Location("/list/{page}")
     data class List(val type: Type, val page: Int)
 }
-
-data class MySession(val count: Int = 0)
 
 class AuthenticationException : RuntimeException()
 

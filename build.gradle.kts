@@ -36,6 +36,8 @@ dependencies {
     compile("io.ktor:ktor-auth-jwt:$ktor_version")
     compile("io.ktor:ktor-gson:$ktor_version")
     testCompile("io.ktor:ktor-server-tests:$ktor_version")
+
+    compile("org.koin:koin-ktor:2.0.1")
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src")
