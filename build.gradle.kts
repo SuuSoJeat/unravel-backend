@@ -14,7 +14,7 @@ group = "dev.suusojeat"
 version = "0.0.1"
 
 application {
-    mainClassName = "io.ktor.server.netty.EngineMain"
+    mainClassName = "ApplicationKt"
 }
 
 repositories {
