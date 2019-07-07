@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val ktor_version: String by project
 val kotlin_version: String by project
@@ -8,6 +9,7 @@ val logback_version: String by project
 plugins {
     application
     kotlin("jvm") version "1.3.41"
+    id("com.github.johnrengelman.shadow") version "5.1.0"
 }
 
 group = "dev.suusojeat"
@@ -21,6 +23,7 @@ repositories {
     mavenLocal()
     jcenter()
     maven { url = uri("https://kotlin.bintray.com/ktor") }
+    maven { url = uri("https://plugins.gradle.org/m2/") }
 }
 
 dependencies {
@@ -38,6 +41,10 @@ dependencies {
     testCompile("io.ktor:ktor-server-tests:$ktor_version")
 
     compile("org.koin:koin-ktor:2.0.1")
+}
+
+tasks.withType<ShadowJar> {
+    this.archiveBaseName.set("${project.name}")
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src")
